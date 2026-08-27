@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seal a Letter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #211829;
+    --gold: #C9973E;
+    --gold-soft: #E4C583;
+    --wax: #8E2C3C;
+    --parchment: #F3E7CD;
+    --parchment-dim: #EADFC4;
+    --ash: #EDE6DC;
+    --charcoal: #2B2620;
+    --charcoal-soft: #6b6152;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--ash);
+    background-image:
+      radial-gradient(ellipse at 20% -10%, rgba(201,151,62,0.10), transparent 45%),
+      radial-gradient(ellipse at 100% 110%, rgba(142,44,60,0.08), transparent 40%);
+    color: var(--charcoal);
+    font-family: 'Work Sans', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 28px 100px;
+  }
+  header.site{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom: 56px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand{
+    font-family:'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+  .brand em{ font-style: italic; color: var(--wax); font-weight:500; }
+  .tagline{
+    font-size: 13px;
+    color: var(--charcoal-soft);
+    letter-spacing: 0.04em;
+  }
+  main{
+    display:grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 56px;
+    align-items:start;
+  }
+  @media (max-width: 880px){
+    main{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Live envelope preview ---------- */
+  .stage{
+    position: sticky;
+    top: 40px;
+  }
+  .envelope{
+    position: relative;
+    aspect-ratio: 3/2;
+    background:
+      linear-gradient(155deg, var(--parchment) 0%, var(--parchment-dim) 100%);
+    border-radius: var(--radius);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 30px 60px -20px rgba(33,24,41,0.35),
+      0 8px 20px -10px rgba(33,24,41,0.25);
+    overflow: hidden;
+    transform: rotate(-1.2deg);
+  }
+  .envelope::before{ /* left flap shading */
+    content:"";
+    position:absolute; inset:0;
+    background:
+      linear-gradient(135deg, transparent 49.6%, rgba(43,38,32,0.06) 50%, transparent 50.4%),
+      linear-gradient(-135deg, transparent 49.6%, rgba(43,38,32,0.06) 50%, transparent 50.4%);
+    pointer-events:none;
+  }
+  .envelope .flap{
+    position:absolute; top:0; left:0; right:0;
+    height: 62%;
+    clip-path: polygon(0 0, 100% 0, 50% 68%);
+    background: linear-gradient(160deg, #F7EDD8, #E7D9B7);
+    box-shadow: 0 1px 6px rgba(43,38,32,0.12) inset;
+  }
+  .addr{
+    position:absolute; left: 10%; right:10%; bottom: 16%;
+    font-family:'Fraunces', serif;
+  }
+  .addr .to-row{ font-size: clamp(16px,2.4vw,22px); font-style: italic; color: var(--ink); }
+  .addr .from-row{ margin-top: 10px; font-size: 13px; color: var(--charcoal-soft); font-family:'Work Sans',sans-serif; letter-spacing:0.02em;}
+  .addr .placeholder{ opacity:.4; }
+  .seal{
+    position:absolute; left:50%; top: 58%;
+    width: 62px; height: 62px;
+    transform: translate(-50%,-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #B5495C, var(--wax) 60%, #6f202c 100%);
+    box-shadow: 0 6px 14px -4px rgba(142,44,60,0.55), 0 1px 0 rgba(255,255,255,0.15) inset;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .seal svg{ width: 30px; height:30px; opacity:.85; }
+  .stage .caption{
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--charcoal-soft);
+    text-align:center;
+    letter-spacing:0.03em;
+  }
+
+  /* ---------- Form ---------- */
+  form{ display:flex; flex-direction:column; gap: 26px; }
+  .field label{
+    display:block;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--charcoal-soft);
+    margin-bottom: 8px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    border: none;
+    border-bottom: 1.5px solid rgba(43,38,32,0.22);
+    background: transparent;
+    font-family:'Fraunces', serif;
+    font-size: 19px;
+    color: var(--ink);
+    padding: 6px 2px 10px;
+    outline: none;
+    transition: border-color .2s ease;
+  }
+  .field textarea{
+    font-size: 18px;
+    line-height: 1.65;
+    min-height: 190px;
+    resize: vertical;
+    font-style: italic;
+  }
+  .field input:focus, .field textarea:focus{ border-color: var(--wax); }
+  .field input::placeholder, .field textarea::placeholder{ color: rgba(43,38,32,0.32); font-style: italic;}
+  .row-two{ display:grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width:520px){ .row-two{ grid-template-columns:1fr; } }
+
+  .charcount{ font-size:11px; color:var(--charcoal-soft); text-align:right; margin-top:-14px; }
+
+  button.seal-btn{
+    align-self:flex-start;
+    margin-top: 6px;
+    background: var(--ink);
+    color: var(--parchment);
+    border: none;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14.5px;
+    letter-spacing: 0.03em;
+    padding: 16px 30px;
+    border-radius: 999px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:10px;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    box-shadow: 0 10px 24px -10px rgba(33,24,41,0.5);
+  }
+  button.seal-btn:hover{ transform: translateY(-2px); background:#2c2038; }
+  button.seal-btn:disabled{ opacity:.55; cursor:progress; transform:none; }
+  button.seal-btn .dot{ width:6px;height:6px;border-radius:50%; background:var(--gold); }
+
+  .error{ font-size:13px; color: var(--wax); min-height: 16px; }
+
+  /* ---------- Result state ---------- */
+  .result{
+    display:none;
+    border: 1px solid rgba(43,38,32,0.14);
+    background: var(--parchment);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+  .result.show{ display:block; animation: rise .5s ease both; }
+  @keyframes rise{ from{ opacity:0; transform: translateY(10px);} to{opacity:1; transform:none;} }
+  .result h3{
+    font-family:'Fraunces', serif; font-weight:500; font-style:italic;
+    margin: 0 0 6px; font-size:20px; color: var(--ink);
+  }
+  .result p{ margin: 0 0 18px; font-size: 13.5px; color: var(--charcoal-soft); }
+  .link-row{
+    display:flex; gap:10px; align-items:center;
+    background: #fff; border:1px solid rgba(43,38,32,0.14);
+    border-radius: 999px; padding: 6px 6px 6px 18px;
+  }
+  .link-row input{
+    border:none; outline:none; flex:1; font-family:'Work Sans',sans-serif;
+    font-size: 13.5px; background:transparent; color: var(--charcoal);
+  }
+  .link-row button{
+    border:none; background:var(--wax); color:#fff; font-size:13px;
+    padding: 10px 18px; border-radius:999px; cursor:pointer; font-family:'Work Sans',sans-serif; font-weight:500;
+    white-space:nowrap;
+  }
+  .link-row button:hover{ background:#742330; }
+  .open-link{
+    display:inline-block; margin-top:14px; font-size:13px; color: var(--ink);
+    text-decoration: none; border-bottom: 1px solid var(--gold);
+  }
+
+  footer{
+    text-align:center; margin-top: 90px; font-size: 12px; color: var(--charcoal-soft);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <div>
+      <div class="brand">Ink&nbsp;&amp;&nbsp;<em>Wax</em></div>
+      <div class="tagline">a letter, sealed properly, sent as a link</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage">
+      <div class="envelope">
+        <div class="flap"></div>
+        <div class="addr">
+          <div class="to-row" id="prevTo"><span class="placeholder">To whoever holds your heart</span></div>
+          <div class="from-row" id="prevFrom"><span class="placeholder">— from you</span></div>
+        </div>
+        <div class="seal">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.2 2.2 4.8 5.6 4.2c2-.3 3.7.6 4.4 2 .7-1.4 2.4-2.3 4.4-2 3.4.6 5.2 4 3.6 7.6C19.5 16.4 12 21 12 21z" stroke="#F3E7CD" stroke-width="1.3"/></svg>
+        </div>
+      </div>
+      <div class="caption">this is roughly how it will look when opened</div>
+    </div>
+
+    <div>
+      <form id="letterForm" novalidate>
+        <div class="row-two">
+          <div class="field">
+            <label for="to">To</label>
+            <input id="to" maxlength="60" placeholder="My dearest…" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="from">From</label>
+            <input id="from" maxlength="60" placeholder="Your…" autocomplete="off" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="body">Your words</label>
+          <textarea id="body" maxlength="2000" placeholder="Begin however feels true…" required></textarea>
+          <div class="charcount"><span id="count">0</span> / 2000</div>
+        </div>
+        <div class="error" id="formError"></div>
+        <button type="submit" class="seal-btn" id="sealBtn"><span class="dot"></span>Seal &amp; get link</button>
+      </form>
+
+      <div class="result" id="result">
+        <h3>Sealed.</h3>
+        <p>Share this link — it opens straight to the envelope.</p>
+        <div class="link-row">
+          <input type="text" id="shareLink" readonly>
+          <button id="copyBtn" type="button">Copy</button>
+        </div>
+        <a href="#" target="_blank" class="open-link" id="openLink">Open it yourself →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>Letters are stored so your link keeps working — write nothing you wouldn't want kept.</footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { firebaseConfig } from "./firebase-config.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const toEl = document.getElementById('to');
+  const fromEl = document.getElementById('from');
+  const bodyEl = document.getElementById('body');
+  const countEl = document.getElementById('count');
+  const prevTo = document.getElementById('prevTo');
+  const prevFrom = document.getElementById('prevFrom');
+  const form = document.getElementById('letterForm');
+  const sealBtn = document.getElementById('sealBtn');
+  const errorEl = document.getElementById('formError');
+  const result = document.getElementById('result');
+  const shareLink = document.getElementById('shareLink');
+  const openLink = document.getElementById('openLink');
+  const copyBtn = document.getElementById('copyBtn');
+
+  function refreshPreview(){
+    prevTo.textContent = toEl.value.trim() ? toEl.value.trim() : '';
+    if(!toEl.value.trim()) prevTo.innerHTML = '<span class="placeholder">To whoever holds your heart</span>';
+    prevFrom.textContent = fromEl.value.trim() ? '— ' + fromEl.value.trim() : '';
+    if(!fromEl.value.trim()) prevFrom.innerHTML = '<span class="placeholder">— from you</span>';
+    countEl.textContent = bodyEl.value.length;
+  }
+  [toEl, fromEl, bodyEl].forEach(el => el.addEventListener('input', refreshPreview));
+  refreshPreview();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.textContent = '';
+    const to = toEl.value.trim();
+    const from = fromEl.value.trim();
+    const body = bodyEl.value.trim();
+    if(!to || !from || !body){
+      errorEl.textContent = 'Fill in all three fields before sealing.';
+      return;
+    }
+    sealBtn.disabled = true;
+    sealBtn.textContent = 'Sealing…';
+    try{
+      const docRef = await addDoc(collection(db, 'letters'), {
+        to, from, body,
+        createdAt: serverTimestamp()
+      });
+      const url = new URL('letter.html', window.location.href);
+      url.searchParams.set('id', docRef.id);
+      shareLink.value = url.toString();
+      openLink.href = url.toString();
+      result.classList.add('show');
+      form.style.display = 'none';
+    }catch(err){
+      console.error(err);
+      errorEl.textContent = 'Could not save your letter — check the Firebase config and try again.';
+    }finally{
+      sealBtn.disabled = false;
+      sealBtn.innerHTML = '<span class="dot"></span>Seal &amp; get link';
+    }
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(shareLink.value);
+    copyBtn.textContent = 'Copied';
+    setTimeout(() => copyBtn.textContent = 'Copy', 1600);
+  });
+</script>
+</body>
+</html>
