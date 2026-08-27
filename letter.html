@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A letter for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #211829;
+    --ink-deep: #16101D;
+    --gold: #C9973E;
+    --gold-soft: #E7CD98;
+    --wax: #8E2C3C;
+    --wax-dark: #6f202c;
+    --parchment: #F6EEDB;
+    --parchment-dim: #EBDFC0;
+    --charcoal: #2B2620;
+    --charcoal-soft: #7a7263;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--ink-deep);
+    overflow-x: hidden;
+  }
+  body{
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Work Sans', sans-serif;
+    background:
+      radial-gradient(ellipse 60% 45% at 50% 38%, rgba(201,151,62,0.16), transparent 60%),
+      radial-gradient(ellipse 90% 70% at 50% 100%, rgba(142,44,60,0.12), transparent 60%),
+      var(--ink-deep);
+    padding: 40px 20px;
+  }
+
+  /* subtle drifting motes for candlelit atmosphere */
+  .motes{ position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+  .mote{
+    position:absolute; bottom:-10px; width:3px; height:3px; border-radius:50%;
+    background: var(--gold-soft); opacity:0;
+    animation: float 9s linear infinite;
+  }
+  @keyframes float{
+    0%{ opacity:0; transform: translateY(0) translateX(0); }
+    10%{ opacity:.55; }
+    90%{ opacity:.35; }
+    100%{ opacity:0; transform: translateY(-100vh) translateX(20px); }
+  }
+
+  .stage{ position:relative; width:100%; max-width: 460px; }
+
+  /* ---------------- Envelope (initial state) ---------------- */
+  #envelopeStage{ cursor:pointer; }
+  .envelope{
+    position:relative;
+    aspect-ratio: 3/2;
+    background: linear-gradient(155deg, var(--parchment), var(--parchment-dim));
+    border-radius: 3px;
+    box-shadow: 0 40px 90px -30px rgba(0,0,0,0.7), 0 10px 26px -14px rgba(0,0,0,0.5);
+    transition: transform .5s ease;
+  }
+  #envelopeStage:hover .envelope{ transform: translateY(-3px); }
+  .flap{
+    position:absolute; top:0; left:0; right:0; height:62%;
+    clip-path: polygon(0 0, 100% 0, 50% 68%);
+    background: linear-gradient(160deg, #FAF1DE, #E9DBB9);
+    transform-origin: top center;
+    transition: transform .9s cubic-bezier(.6,.05,.2,1);
+    box-shadow: 0 1px 6px rgba(43,38,32,0.12) inset;
+  }
+  .flap.open{ transform: rotateX(178deg); box-shadow:none; }
+  .seal-wax{
+    position:absolute; left:50%; top:58%; width:70px; height:70px;
+    transform: translate(-50%,-50%);
+    border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #B5495C, var(--wax) 60%, var(--wax-dark) 100%);
+    box-shadow: 0 10px 20px -6px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.18) inset;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform .35s ease, opacity .5s ease;
+    z-index: 3;
+  }
+  .seal-wax svg{ width:32px; height:32px; opacity:.9; }
+  .seal-wax.cracked{ animation: crack .45s ease forwards; }
+  @keyframes crack{
+    0%{ transform: translate(-50%,-50%) scale(1); }
+    40%{ transform: translate(-50%,-50%) scale(1.08) rotate(-3deg); }
+    100%{ transform: translate(-50%,-50%) scale(0.2); opacity:0; }
+  }
+  .prompt{
+    text-align:center; margin-top:22px; color: var(--gold-soft);
+    font-size:13px; letter-spacing:0.08em; text-transform:uppercase;
+    opacity:.85;
+  }
+
+  /* ---------------- Letter (revealed state) ---------------- */
+  #letterStage{ display:none; }
+  #letterStage.show{ display:block; animation: floatUp .7s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes floatUp{ from{ opacity:0; transform: translateY(28px) scale(.97);} to{ opacity:1; transform:none; } }
+
+  .paper{
+    background: var(--parchment);
+    background-image: radial-gradient(rgba(43,38,32,0.03) 1px, transparent 1px);
+    background-size: 3px 3px;
+    border-radius: 2px;
+    padding: 46px 40px 40px;
+    box-shadow: 0 40px 90px -30px rgba(0,0,0,0.7), 0 10px 26px -14px rgba(0,0,0,0.55);
+    position:relative;
+  }
+  .paper::before{
+    content:"";
+    position:absolute; left:0; right:0; top:0; height:6px;
+    background: linear-gradient(90deg, var(--gold), var(--wax), var(--gold));
+    border-radius: 2px 2px 0 0;
+    opacity:.9;
+  }
+  .to-line{
+    font-family:'Fraunces', serif; font-style:italic; font-weight:500;
+    font-size: clamp(22px, 5vw, 28px); color: var(--ink); margin: 6px 0 22px;
+  }
+  .letter-body{
+    font-family:'Fraunces', serif; font-size: 17.5px; line-height:1.85;
+    color: var(--charcoal); white-space: pre-wrap; min-height: 40px;
+  }
+  .letter-body .word{ opacity:0; animation: appear .5s ease forwards; }
+  @keyframes appear{ to{ opacity:1; } }
+  .from-line{
+    margin-top: 30px; text-align:right;
+    font-family:'Fraunces', serif; font-style:italic; font-size:18px; color: var(--wax-dark);
+  }
+  .compose-link{
+    display:block; text-align:center; margin-top:26px;
+    font-size:12.5px; color: var(--gold-soft); text-decoration:none;
+    letter-spacing:0.04em; opacity:.75;
+  }
+  .compose-link:hover{ opacity:1; }
+
+  /* ---------------- States: loading / missing ---------------- */
+  .status{
+    text-align:center; color: var(--gold-soft); font-size:14px; letter-spacing:0.03em;
+  }
+  .status a{ color: var(--gold-soft); }
+</style>
+</head>
+<body>
+<div class="motes" id="motes"></div>
+
+<div class="stage">
+
+  <div id="loading" class="status">opening the seal…</div>
+
+  <div id="envelopeStage" style="display:none;">
+    <div class="envelope">
+      <div class="flap" id="flap"></div>
+      <div class="seal-wax" id="sealWax">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.2 2.2 4.8 5.6 4.2c2-.3 3.7.6 4.4 2 .7-1.4 2.4-2.3 4.4-2 3.4.6 5.2 4 3.6 7.6C19.5 16.4 12 21 12 21z" stroke="#F6EEDB" stroke-width="1.3"/></svg>
+      </div>
+    </div>
+    <div class="prompt">tap the seal to break it</div>
+  </div>
+
+  <div id="letterStage">
+    <div class="paper">
+      <div class="to-line" id="toLine"></div>
+      <div class="letter-body" id="bodyText"></div>
+      <div class="from-line" id="fromLine"></div>
+    </div>
+    <a class="compose-link" href="create.html">write one of your own →</a>
+  </div>
+
+  <div id="missing" class="status" style="display:none;">
+    this letter couldn't be found — links only work once they've been sealed.<br>
+    <a href="create.html">seal a new one →</a>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { firebaseConfig } from "./firebase-config.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ambient motes
+  const motesEl = document.getElementById('motes');
+  for(let i=0;i<18;i++){
+    const m = document.createElement('div');
+    m.className = 'mote';
+    m.style.left = Math.random()*100 + '%';
+    m.style.animationDelay = (Math.random()*9) + 's';
+    m.style.animationDuration = (7 + Math.random()*6) + 's';
+    motesEl.appendChild(m);
+  }
+
+  const loading = document.getElementById('loading');
+  const envelopeStage = document.getElementById('envelopeStage');
+  const letterStage = document.getElementById('letterStage');
+  const missing = document.getElementById('missing');
+  const flap = document.getElementById('flap');
+  const sealWax = document.getElementById('sealWax');
+  const toLine = document.getElementById('toLine');
+  const bodyText = document.getElementById('bodyText');
+  const fromLine = document.getElementById('fromLine');
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  let letterData = null;
+
+  async function load(){
+    if(!id){ showMissing(); return; }
+    try{
+      const snap = await getDoc(doc(db, 'letters', id));
+      if(!snap.exists()){ showMissing(); return; }
+      letterData = snap.data();
+      loading.style.display = 'none';
+      envelopeStage.style.display = 'block';
+    }catch(err){
+      console.error(err);
+      showMissing();
+    }
+  }
+
+  function showMissing(){
+    loading.style.display = 'none';
+    missing.style.display = 'block';
+  }
+
+  function renderWords(text){
+    bodyText.innerHTML = '';
+    const words = text.split(/(\s+)/);
+    let delay = 0;
+    words.forEach(w => {
+      const span = document.createElement('span');
+      span.className = 'word';
+      span.textContent = w;
+      span.style.animationDelay = delay + 's';
+      if(w.trim() !== ''){ delay += 0.018; }
+      bodyText.appendChild(span);
+    });
+  }
+
+  envelopeStage.addEventListener('click', () => {
+    if(!letterData) return;
+    sealWax.classList.add('cracked');
+    setTimeout(() => {
+      flap.classList.add('open');
+    }, 250);
+    setTimeout(() => {
+      envelopeStage.style.display = 'none';
+      toLine.textContent = letterData.to;
+      fromLine.textContent = '— ' + letterData.from;
+      renderWords(letterData.body || '');
+      letterStage.classList.add('show');
+    }, 1050);
+  }, { once: true });
+
+  load();
+</script>
+</body>
+</html>
